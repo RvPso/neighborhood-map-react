@@ -1,0 +1,81 @@
+.map {
+  margin: 0;
+  width: 85%;
+  height: 100vh;
+}
+.container {
+  display: flex;
+  flex-wrap: wrap;
+}
+.sidebar {
+  width: 15%;
+  background-color: white;
+  height: 100vh;
+}
+.sidebar input {
+  width: 100%;
+  line-height: 0.8cm;
+  padding: 17px;
+  padding-left: 55px;
+  width: 300px;
+  border: 1px solid #f5f5f5;
+  font-size: 13px;
+  color: gray;
+  background-image: url('http://i47.tinypic.com/r02vbq.png');
+  background-repeat: no-repeat;
+  background-position: left center;
+  outline: 0;
+}
+.sidebar ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+.sidebar li {
+  font-size: 12px;
+  border-bottom: 2px solid grey;
+  color: Black;
+  line-height: 2cm;
+}
+.menu {
+  display: none;
+}
+.error {
+  color: red;
+}
+@media screen and (max-width: 800px) {
+  .sidebar-hidden {
+    display: none;
+  }
+  .sidebar {
+    position: absolute;
+    width: 4.5cm;
+    z-index: 2;
+  }
+  .sidebar input {
+    width: 2.55cm;
+  }
+  .menu {
+    display: block;
+    position: absolute;
+    top: 13px !important;
+  }
+  .hamburger-icon {
+    width: 45px;
+    fill: #E0E0E0;
+  }
+  .map {
+    width: 100%;
+  }
+}
+@media screen and (max-width: 500px) {
+  .heading {
+    font-size: medium;
+    padding: 1em;
+  }
+  .menu {
+    top: 0!important;
+  }
+}
+li:focus {
+  background-color: #9f8ef9;
+}
