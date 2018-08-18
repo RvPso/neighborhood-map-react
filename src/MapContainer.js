@@ -11,11 +11,15 @@ export default class MapContainer extends Component {
     ],
     markers: [],
     infowindow: new this.props.google.maps.InfoWindow(),
+    placename: '123',
+    query: '',
   }
   handleValueChange = (input) => {
     this.setState({query: input.target.value})
   }
   componentDidMount() {
+   
+   
     this.loadMap();
     this.onclickLocation();
   }
@@ -37,7 +41,7 @@ export default class MapContainer extends Component {
   populateInfoWindow = (marker, infowindow) => {
 
     if (infowindow.marker !== marker) {
-      infowindow.setContent(`<h3>${marker.title}</h3>`);
+      infowindow.setContent(this.state.placename);
       infowindow.marker = marker;
       infowindow.open(this.map, marker);
       infowindow.addListener('click', function() {
@@ -63,12 +67,32 @@ export default class MapContainer extends Component {
     let {google} = this.props;
     let {infowindow} = this.state;
   
-
+    var clientID = 'GXD0FQDPQUN1HC2JUSKY2YM3ICMQHO5ZWTDML3KEFRYQAR2N';
+    var clientSecret = 'AAVPGBUMRZN42WVPO5MUD2K2ZYTRNSU4NUTQGWATVWLK2YER';
     this.state.places.forEach((place, index) => {
       const marker = new google.maps.Marker({
         position: place.location,
         map: this.map,
         title: place.name
+      })
+      const url = "https://api.foursquare.com/v2/venues/search?client_id=" +
+      clientID +
+      "&client_secret=" +
+      clientSecret +
+      "&v=20130815&ll=" +
+      marker.getPosition().lat() +
+      "," +
+      marker.getPosition().lng() +
+      "&limit=1";
+      fetch(url).then(function(response){
+        response.json().then(function(data){
+          console.log(data);
+          var location_data = data.response.venues[0];
+          console.log(location_data.name)
+          this.setState({placename: location_data.name})
+      
+          
+        })
       })
       marker.addListener('click', () => {
         this.populateInfoWindow(marker, infowindow)
