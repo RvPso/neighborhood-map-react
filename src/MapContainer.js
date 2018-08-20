@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
-import ReactDOM from 'react-dom'
+import ReactDOM from 'react-dom';
+import swal from 'sweetalert';
 export default class MapContainer extends Component {
   state = {
     places: [
@@ -12,13 +13,14 @@ export default class MapContainer extends Component {
     markers: [],
     infowindow: new this.props.google.maps.InfoWindow(),
     verify: [],
+    users: [],
     query: '',
   }
   handleValueChange = (input) => {
     this.setState({query: input.target.value})
   }
   componentDidMount() {
-   
+    
    this.API();
     this.loadMap();
     this.onclickLocation();
@@ -36,15 +38,18 @@ export default class MapContainer extends Component {
       });
       this.map = new maps.Map(node, mapConfig);
       this.addMarkers();
+    } else {
+      swal('Failed to load the map, please refresh')
     }
   }
-  populateInfoWindow = (marker, infowindow, verify) => {
+  populateInfoWindow = (marker, infowindow, verify, users) => {
     if (infowindow.marker !== marker) {
-      infowindow.setContent('<b>' + marker.title + '</b> <br>' + verify);
+      infowindow.setContent('<b>' + marker.title + '</b> <br>' + verify + '<br> CheckIns: ' + users);
       infowindow.marker = marker;
       infowindow.open(this.map, marker);
       infowindow.addListener('click', function() {
         infowindow.marker = null;
+        
       });
     }
   }
@@ -54,7 +59,7 @@ export default class MapContainer extends Component {
     const displayInfowindow = (event) => {
       const {markers} = this.state
       const markerInd = markers.findIndex(marker => marker.title.toLowerCase() === event.target.innerText.toLowerCase())
-      that.populateInfoWindow(markers[markerInd], infowindow, that.state.verify[markerInd])
+      that.populateInfoWindow(markers[markerInd], infowindow, that.state.verify[markerInd], this.state.users[markerInd])
     }
     document.querySelector('.locations').addEventListener('click', function (event) {
       if(event.target && event.target.nodeName === "LI") {
@@ -70,10 +75,15 @@ export default class MapContainer extends Component {
       const marker = new google.maps.Marker({
         position: place.location,
         map: this.map,
-        title: place.name
+        title: place.name,
+        animation: google.maps.Animation.DROP
       })
       marker.addListener('click', () => {
-        this.populateInfoWindow(marker, infowindow, this.state.verify[index])
+        this.populateInfoWindow(marker, infowindow, this.state.verify[index], this.state.users[index])
+        marker.setAnimation(google.maps.Animation.BOUNCE);
+        setTimeout(function() {
+          marker.setAnimation(null);
+      }, 500);
       })
       this.setState((state) => ({
         markers: [...state.markers, marker]
@@ -87,7 +97,8 @@ export default class MapContainer extends Component {
     let {places} = this.state;
     var clientID = 'GXD0FQDPQUN1HC2JUSKY2YM3ICMQHO5ZWTDML3KEFRYQAR2N';
     var clientSecret = 'AAVPGBUMRZN42WVPO5MUD2K2ZYTRNSU4NUTQGWATVWLK2YER';
-    var locationName = [];
+    var locationVerification = [];
+    var locationUsers = [];
     for (var i = 0; i <= 4; i++) {
       const url = "https://api.foursquare.com/v2/venues/search?client_id=" +
     clientID +
@@ -98,19 +109,18 @@ export default class MapContainer extends Component {
     "," +
     places[i].location.lng +
     "&limit=1";
-    fetch(url).then(function(response){
-      if (response.status !== 200) {
-        alert('failed to load, please refresh the page')
-return;
-    }
+    fetch(url).catch(
+      () => swal('Failed to load, please refresh the page')).then(function(response){
       response.json().then(function(data){
         var location_data = data.response.venues[0];
-        locationName.push(location_data.verified ? 'Verified' : 'Not Verified') ;
+        locationVerification.push(location_data.verified ? 'Verified' : 'Not Verified') ;
+        locationUsers.push(location_data.stats.checkinsCount)
       })
     })
     }
     setTimeout(function() {
-      this.setState({verify: locationName})
+      this.setState({verify: locationVerification,
+                     users: locationUsers})
       console.log(this.state.verify)
   }.bind(this), 3000);
   }
@@ -136,7 +146,7 @@ return;
                  value={this.state.value}
                  onChange={this.handleValueChange} />
           <ul className="locations">
-          {markers.filter(marker => marker.getVisible()).map((marker, i) => (<li key={i}>{marker.title}</li>))}
+          {markers.filter(marker => marker.getVisible()).map((marker, i) => (<li tabIndex="0" key={i}>{marker.title}</li>))}
            </ul>       
           </div>
           <div role="application" className="map" ref="map">
