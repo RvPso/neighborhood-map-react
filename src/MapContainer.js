@@ -109,8 +109,11 @@ export default class MapContainer extends Component {
     "," +
     places[i].location.lng +
     "&limit=1";
-    fetch(url).catch(
-      () => swal('Failed to load, please refresh the page')).then(function(response){
+    fetch(url).then(function(response){
+      if (response.status !== 200) {
+        swal('failed to load, please refresh the page')
+        return;
+    }
       response.json().then(function(data){
         var location_data = data.response.venues[0];
         locationVerification.push(location_data.verified ? 'Verified' : 'Not Verified') ;
